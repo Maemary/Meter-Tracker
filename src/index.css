@@ -369,6 +369,20 @@ form {
   background: currentColor;
   opacity: 0.6;
 }
+.name-edit {
+  margin-left: 10px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--hero-text);
+  background: rgb(255 255 255 / 0.12);
+  border: 1px solid rgb(255 255 255 / 0.25);
+  border-radius: 999px;
+  vertical-align: middle;
+}
+.name-edit:hover {
+  background: rgb(255 255 255 / 0.22);
+}
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -880,17 +894,125 @@ input::placeholder {
   margin-top: 8px;
 }
 
+/* ---------- 13a. Household card & invite codes ---------- */
+.household-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: var(--violet);
+  background: var(--violet-soft);
+}
+.invite {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  margin-bottom: 8px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px dashed var(--border);
+  font-size: 13px;
+}
+.invite-code {
+  font-size: 24px;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+.invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+.invite-note {
+  font-size: 12px;
+  margin-top: 4px;
+}
+.small-button {
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border);
+}
+.small-button:hover {
+  background: var(--surface-2);
+}
+.small-button.primary {
+  color: var(--accent-text);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-color: transparent;
+}
+.member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.avatar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--violet);
+  background: var(--violet-soft);
+}
+.leave {
+  margin-top: 8px;
+  justify-self: start;
+}
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.onboarding .tabs,
+.onboarding .plain-form {
+  width: 100%;
+}
+.onboarding .tabs {
+  margin: 8px 0 4px;
+}
+
 /* ---------- 13b. Show/hide meter number ---------- */
+/* a field whose label isn't wrapped around it (same look as label) */
+.field {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
 .password-field {
   position: relative;
   display: block;
 }
 .password-field input {
-  padding-right: 64px;
+  padding-right: 72px;
+}
+/* hide Edge's own eye icon so it can't sit on top of our button */
+.password-field input::-ms-reveal,
+.password-field input::-ms-clear {
+  display: none;
 }
 .reveal {
   position: absolute;
+  z-index: 2;
   right: 6px;
+  touch-action: manipulation;
   top: 50%;
   transform: translateY(-50%);
   padding: 5px 10px;

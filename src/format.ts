@@ -34,6 +34,25 @@ export function nowLocal() {
   return now.toISOString().slice(0, 16)
 }
 
+// Best guess at a first name from an email address:
+//   "tunde.bakare@gmail.com" → "Tunde", "ngozi_eze22@yahoo.com" → "Ngozi"
+//   "aishatoduye1@gmail.com" → null (names run together; can't split safely)
+export function nameFromEmail(email: string) {
+  const local = email.split('@')[0] ?? ''
+  const pieces = local.split(/[._\-+0-9]+/).filter(Boolean)
+  const first = pieces[0]
+  if (!first || first.length < 2) return null
+  // One long joined-up word is probably first+last name stuck together
+  if (pieces.length === 1 && first.length > 9) return null
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase()
+}
+
+// What to call a household member: their chosen name, a guess from their
+// email, or the start of their email as a last resort
+export function memberName(member: { displayName: string | null; email: string }) {
+  return member.displayName || nameFromEmail(member.email) || member.email.split('@')[0]
+}
+
 // "Good morning" / "Good afternoon" / "Good evening"
 export function greeting(date = new Date()) {
   const hour = date.getHours()

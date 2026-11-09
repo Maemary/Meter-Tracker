@@ -106,6 +106,16 @@ export function ShieldIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function UsersIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <circle cx="9" cy="8" r="4" />
+      <path d="M2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1" />
+      <path d="M16 3.1a4 4 0 0 1 0 7.8M22 21v-1a6 6 0 0 0-4-5.7" />
+    </Icon>
+  )
+}
+
 export function MailIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <Icon {...props}>

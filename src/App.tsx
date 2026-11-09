@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Brand, Footer } from './components/Brand'
+import { HouseholdCard } from './components/HouseholdCard'
 import { Modal } from './components/Modal'
+import { NameForm } from './components/NameForm'
 import {
   CalendarIcon,
   GaugeIcon,
@@ -19,11 +21,14 @@ import {
   formatUnits,
   formatWhen,
   greeting,
+  memberName,
+  nameFromEmail,
   nowLocal,
 } from './format'
 import { supabase } from './supabase'
 import type { Meter } from './types'
 import { calculateUsage, summarize } from './usage'
+import { useHousehold } from './useHousehold'
 import { useMeterData } from './useMeterData'
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24
@@ -38,10 +43,26 @@ function daysLeftTone(daysLeft: number | undefined) {
 
 type Props = {
   meter: Meter
+  userId: string
   email: string
+  savedName: string | null // from "What should we call you?"
+  onLeave: () => void // leave a household you joined
 }
 
-function App({ meter, email }: Props) {
+function App({ meter, userId, email, savedName, onLeave }: Props) {
+  const household = useHousehold(meter.id, meter.inviteCode)
+  const shared = household.members.length > 1
+
+  // "by Tolu" on entries, but only when more than one person logs
+  function loggedBy(createdBy: string | null) {
+    if (!shared || !createdBy) return ''
+    if (createdBy === userId) return ' · by you'
+    const member = household.members.find((m) => m.userId === createdBy)
+    return member ? ` · by ${memberName(member)}` : ''
+  }
+
+  // Name you chose first; otherwise a guess from your email (may be none)
+  const name = savedName || nameFromEmail(email)
   const {
     readings,
     recharges,
@@ -54,7 +75,7 @@ function App({ meter, email }: Props) {
   } = useMeterData()
 
   // Which pop-up form is open, if any
-  const [openForm, setOpenForm] = useState<'reading' | 'recharge' | null>(null)
+  const [openForm, setOpenForm] = useState<'reading' | 'recharge' | 'name' | null>(null)
   const closeForm = () => setOpenForm(null)
 
   const newestFirst = [...readings].sort((a, b) =>
@@ -126,7 +147,17 @@ function App({ meter, email }: Props) {
 
           <div className="hero-body">
             <div>
-              <p className="hero-kicker">{greeting()}</p>
+              <p className="hero-kicker">
+                {greeting()}
+                {name ? `, ${name}` : ''}
+                <button
+                  className="name-edit"
+                  onClick={() => setOpenForm('name')}
+                  aria-label={name ? 'Change your name' : 'Add your name'}
+                >
+                  {savedName ? 'Edit' : name ? 'Not you? Edit' : 'Add your name'}
+                </button>
+              </p>
               <h1>{meter.nickname ?? 'Your meter'}</h1>
               <div className="meter-chip">
                 <span className="meter-disco">{meter.disco}</span>
@@ -275,7 +306,10 @@ function App({ meter, email }: Props) {
                       <li key={r.id}>
                         <span className="row-main">
                           <strong>{r.units.toLocaleString()} units</strong>
-                          <span className="muted">{formatWhen(r.takenAt)}</span>
+                          <span className="muted">
+                            {formatWhen(r.takenAt)}
+                            {loggedBy(r.createdBy)}
+                          </span>
                         </span>
                         <button className="danger" onClick={() => deleteReading(r.id)}>
                           Delete
@@ -301,7 +335,10 @@ function App({ meter, email }: Props) {
                           <strong>
                             +{r.units.toLocaleString()} units · {formatNaira(r.amount)}
                           </strong>
-                          <span className="muted">{formatWhen(r.takenAt)}</span>
+                          <span className="muted">
+                            {formatWhen(r.takenAt)}
+                            {loggedBy(r.createdBy)}
+                          </span>
                         </span>
                         <button className="danger" onClick={() => deleteRecharge(r.id)}>
                           Delete
@@ -315,6 +352,17 @@ function App({ meter, email }: Props) {
           </div>
 
           <aside className="side-col">
+            <HouseholdCard
+              members={household.members}
+              inviteCode={household.inviteCode}
+              meterNumber={meter.meterNumber}
+              isOwner={meter.isOwner}
+              currentUserId={userId}
+              error={household.error}
+              onRemove={household.removeMember}
+              onNewCode={household.newCode}
+              onLeave={onLeave}
+            />
             <Tips />
           </aside>
         </div>
@@ -322,6 +370,9 @@ function App({ meter, email }: Props) {
 
       <Modal open={openForm === 'reading'} onClose={closeForm} label="Log a reading">
         <ReadingForm onAdd={addReading} onDone={closeForm} />
+      </Modal>
+      <Modal open={openForm === 'name'} onClose={closeForm} label="Your name">
+        <NameForm current={savedName ?? name ?? ''} onDone={closeForm} />
       </Modal>
       <Modal open={openForm === 'recharge'} onClose={closeForm} label="Record a recharge">
         <RechargeForm onAdd={addRecharge} onDone={closeForm} pricePerUnit={latestPrice} />

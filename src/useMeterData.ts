@@ -3,7 +3,12 @@ import { supabase } from './supabase'
 import type { NewReading, NewRecharge, Reading, Recharge } from './types'
 
 // What a row looks like in the database (snake_case)
-type ReadingRow = { id: string; taken_at: string; units: number }
+type ReadingRow = {
+  id: string
+  taken_at: string
+  units: number
+  created_by: string | null
+}
 type RechargeRow = ReadingRow & { amount: number }
 
 // Database row → app object (camelCase)
@@ -12,6 +17,7 @@ function toReading(row: ReadingRow): Reading {
     id: row.id,
     takenAt: row.taken_at.slice(0, 16),
     units: Number(row.units),
+    createdBy: row.created_by,
   }
 }
 
@@ -28,8 +34,8 @@ export function useMeterData() {
   useEffect(() => {
     async function load() {
       const [readingsResult, rechargesResult] = await Promise.all([
-        supabase.from('readings').select('id, taken_at, units'),
-        supabase.from('recharges').select('id, taken_at, units, amount'),
+        supabase.from('readings').select('id, taken_at, units, created_by'),
+        supabase.from('recharges').select('id, taken_at, units, amount, created_by'),
       ])
 
       const loadError = readingsResult.error ?? rechargesResult.error
@@ -49,7 +55,7 @@ export function useMeterData() {
     const { data, error } = await supabase
       .from('readings')
       .insert({ taken_at: reading.takenAt, units: reading.units })
-      .select('id, taken_at, units')
+      .select('id, taken_at, units, created_by')
       .single()
 
     if (error) {
@@ -79,7 +85,7 @@ export function useMeterData() {
         units: recharge.units,
         amount: recharge.amount,
       })
-      .select('id, taken_at, units, amount')
+      .select('id, taken_at, units, amount, created_by')
       .single()
 
     if (error) {

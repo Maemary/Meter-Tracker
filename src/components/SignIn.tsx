@@ -2,7 +2,9 @@ import { useState, type FormEvent } from 'react'
 import gaugeImage from '../assets/gauge.avif'
 import {
   DISCOS,
+  cleanInviteCode,
   cleanMeterNumber,
+  isValidInviteCode,
   isValidMeterNumber,
 } from '../discos'
 import { supabase } from '../supabase'
@@ -50,10 +52,14 @@ function friendlyError(message: string, mode: Mode) {
 
 export function SignIn() {
   const [mode, setMode] = useState<Mode>('signup')
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [meterNumber, setMeterNumber] = useState('')
   const [showMeter, setShowMeter] = useState(false)
   const [disco, setDisco] = useState<DiscoCode | ''>('')
+  // Joining a family member's meter instead of setting up a new one?
+  const [joining, setJoining] = useState(false)
+  const [inviteCode, setInviteCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -65,7 +71,11 @@ export function SignIn() {
       setErrorMessage('Meter numbers are 11 to 13 digits. Check the front of your meter or a token receipt.')
       return
     }
-    if (mode === 'signup' && !disco) {
+    if (mode === 'signup' && joining && !isValidInviteCode(inviteCode)) {
+      setErrorMessage('Invite codes have 8 letters and numbers, like K7QM-4XPA.')
+      return
+    }
+    if (mode === 'signup' && !joining && !disco) {
       setErrorMessage('Choose your electricity company.')
       return
     }
@@ -80,7 +90,16 @@ export function SignIn() {
         ? await supabase.auth.signUp({
             email,
             password: meter,
-            options: { data: { meter_number: meter, disco } },
+            options: {
+              data: {
+                meter_number: meter,
+                display_name: name.trim() || null,
+                // one or the other: join an existing meter, or create one
+                ...(joining
+                  ? { invite_code: cleanInviteCode(inviteCode) }
+                  : { disco }),
+              },
+            },
           })
         : await supabase.auth.signInWithPassword({ email, password: meter })
 
@@ -164,6 +183,22 @@ export function SignIn() {
             {/* Browsers offer to save a login when they see a "username"
                 field next to a type="password" field, so the meter number
                 is a password field (with a show/hide button). */}
+            {mode === 'signup' && (
+              <label>
+                <span>
+                  What should we call you? <span className="optional">optional</span>
+                </span>
+                <input
+                  name="nickname"
+                  autoComplete="given-name"
+                  maxLength={30}
+                  placeholder="e.g. Aisha"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </label>
+            )}
+
             <label>
               Email
               <input
@@ -177,10 +212,13 @@ export function SignIn() {
               />
             </label>
 
-            <label>
-              Meter number
-              <span className="password-field">
+            {/* The Show button sits OUTSIDE the <label> (browsers handle
+                buttons inside labels inconsistently), linked by htmlFor/id. */}
+            <div className="field">
+              <label htmlFor="meter-number">Meter number</label>
+              <div className="password-field">
                 <input
+                  id="meter-number"
                   type={showMeter ? 'text' : 'password'}
                   name="password"
                   inputMode="numeric"
@@ -193,15 +231,19 @@ export function SignIn() {
                 <button
                   type="button"
                   className="reveal"
+                  // Keep focus in the field: on phones, losing focus closes
+                  // the keyboard and the page jumps before the tap lands.
+                  onPointerDown={(e) => e.preventDefault()}
                   onClick={() => setShowMeter((shown) => !shown)}
                   aria-label={showMeter ? 'Hide meter number' : 'Show meter number'}
+                  aria-pressed={showMeter}
                 >
                   {showMeter ? 'Hide' : 'Show'}
                 </button>
-              </span>
-            </label>
+              </div>
+            </div>
 
-            {mode === 'signup' && (
+            {mode === 'signup' && !joining && (
               <label>
                 Electricity company (DisCo)
                 <select
@@ -221,6 +263,37 @@ export function SignIn() {
               </label>
             )}
 
+            {mode === 'signup' && joining && (
+              <label>
+                Invite code
+                <input
+                  required
+                  autoCapitalize="characters"
+                  autoComplete="off"
+                  spellCheck={false}
+                  maxLength={9}
+                  placeholder="e.g. K7QM-4XPA"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
+                />
+              </label>
+            )}
+
+            {mode === 'signup' && (
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => {
+                  setJoining((j) => !j)
+                  setErrorMessage('')
+                }}
+              >
+                {joining
+                  ? 'Setting up a new meter instead?'
+                  : 'Someone at home already uses Meter Tracker? Join with their invite code'}
+              </button>
+            )}
+
             <button type="submit" disabled={busy}>
               {busy
                 ? mode === 'signup'
@@ -236,9 +309,11 @@ export function SignIn() {
 
           <p className="fine-print">
             <ShieldIcon width={16} height={16} />
-            {mode === 'signup'
-              ? 'Next time, just log in with your email and meter number.'
-              : 'Use the email and meter number you signed up with.'}
+            {mode === 'signup' && joining
+              ? 'Use the same meter number as the person who invited you. Next time, log in with your email and that meter number.'
+              : mode === 'signup'
+                ? 'Next time, just log in with your email and meter number.'
+                : 'Use the email and meter number you signed up with.'}
           </p>
         </section>
       </div>

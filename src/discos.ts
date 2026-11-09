@@ -28,6 +28,20 @@ export function isValidMeterNumber(input: string) {
   return /^[0-9]{11,13}$/.test(cleanMeterNumber(input))
 }
 
+// Invite codes: "k7qm 4xpa" / "K7QM-4XPA" → "K7QM4XPA"
+export function cleanInviteCode(input: string) {
+  return input.toUpperCase().replace(/[^A-Z0-9]/g, '')
+}
+
+export function isValidInviteCode(input: string) {
+  return cleanInviteCode(input).length === 8
+}
+
+// "K7QM4XPA" → "K7QM-4XPA"
+export function formatInviteCode(code: string) {
+  return code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : code
+}
+
 // "01012345678" → "0101 2345 678" (easier to read)
 export function formatMeterNumber(meterNumber: string) {
   return meterNumber.replace(/(\d{4})(?=\d)/g, '$1 ')

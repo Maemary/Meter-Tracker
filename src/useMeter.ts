@@ -1,63 +1,61 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
-import type { DiscoCode, Meter, NewMeter } from './types'
+import type { DiscoCode, Meter, NewMeter, SignUpDetails } from './types'
 
 type MeterRow = {
   id: string
   meter_number: string
   disco: DiscoCode
   nickname: string | null
+  invite_code: string
+  owner_id: string
 }
 
-function toMeter(row: MeterRow): Meter {
+const COLUMNS = 'id, meter_number, disco, nickname, invite_code, owner_id'
+
+function toMeter(row: MeterRow, userId: string): Meter {
   return {
     id: row.id,
     meterNumber: row.meter_number,
     disco: row.disco,
     nickname: row.nickname,
+    inviteCode: row.invite_code,
+    isOwner: row.owner_id === userId,
   }
 }
 
-// Loads the signed-in account's meter. If there isn't one yet but the
-// sign-up form gave us the details (`fromSignUp`), creates it straight away.
-export function useMeter(userId: string, fromSignUp: NewMeter | null) {
+// The meter this account belongs to (its own, or a household it joined).
+// On a brand-new account it also finishes sign-up: joins with the invite
+// code, or creates the meter typed on the form.
+export function useMeter(userId: string, fromSignUp: SignUpDetails | null) {
   const [meter, setMeter] = useState<Meter | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function load() {
-      const { data, error } = await supabase
-        .from('meters')
-        .select('id, meter_number, disco, nickname')
-        .eq('owner_id', userId)
-        .maybeSingle()
-
-      if (error) {
-        setError(error.message)
-      } else if (data) {
-        setMeter(toMeter(data))
-      } else if (fromSignUp) {
-        // Brand-new account: save the meter they typed when signing up
-        const created = await supabase
-          .from('meters')
-          .insert({
-            meter_number: fromSignUp.meterNumber,
-            disco: fromSignUp.disco,
-            nickname: fromSignUp.nickname,
-          })
-          .select('id, meter_number, disco, nickname')
-          .single()
-        if (created.error) setError(created.error.message)
-        else setMeter(toMeter(created.data))
-      }
-      setLoading(false)
+  // Row-level security only returns the meter we're a member of
+  async function fetchMeter() {
+    const { data, error } = await supabase.from('meters').select(COLUMNS).maybeSingle()
+    if (error) {
+      setError(error.message)
+      return null
     }
+    const found = data ? toMeter(data, userId) : null
+    setMeter(found)
+    return found
+  }
 
-    load()
-    // fromSignUp only matters on the first load, so it's not a dependency
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId])
+  async function joinMeter(code: string, meterNumber: string) {
+    setError(null)
+    const { error } = await supabase.rpc('join_meter', {
+      p_code: code,
+      p_meter_number: meterNumber,
+    })
+    if (error) {
+      setError(error.message)
+      return
+    }
+    await fetchMeter()
+  }
 
   async function createMeter(input: NewMeter) {
     setError(null)
@@ -68,15 +66,46 @@ export function useMeter(userId: string, fromSignUp: NewMeter | null) {
         disco: input.disco,
         nickname: input.nickname,
       })
-      .select('id, meter_number, disco, nickname')
+      .select(COLUMNS)
       .single()
 
     if (error) {
       setError(error.message)
       return
     }
-    setMeter(toMeter(data))
+    setMeter(toMeter(data, userId))
   }
 
-  return { meter, loading, error, createMeter }
+  async function leaveHousehold() {
+    const { error } = await supabase.rpc('leave_household')
+    if (error) {
+      setError(error.message)
+      return
+    }
+    setMeter(null) // back to the setup screen: create or join another
+  }
+
+  useEffect(() => {
+    async function load() {
+      const found = await fetchMeter()
+      if (!found && fromSignUp) {
+        if (fromSignUp.inviteCode) {
+          await joinMeter(fromSignUp.inviteCode, fromSignUp.meterNumber)
+        } else if (fromSignUp.disco) {
+          await createMeter({
+            meterNumber: fromSignUp.meterNumber,
+            disco: fromSignUp.disco,
+            nickname: null,
+          })
+        }
+      }
+      setLoading(false)
+    }
+
+    load()
+    // Runs once per account; fromSignUp only matters the first time
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId])
+
+  return { meter, loading, error, createMeter, joinMeter, leaveHousehold }
 }
