@@ -1,0 +1,916 @@
+/* =====================================================================
+   Meter Tracker styles
+   Colours live in variables. <html data-theme="dark"> swaps them all.
+   ===================================================================== */
+
+/* ---------- 1. Light theme (default) ---------- */
+:root {
+  color-scheme: light;
+
+  --bg: #f2f5fb;
+  --surface: #ffffff;
+  --surface-2: #f1f4f9;
+  --text: #0f1b2d;
+  --muted: #5b6b80;
+  --border: #e3e8f0;
+
+  --accent: #2459e8;
+  --accent-2: #4f8dff;
+  --accent-text: #ffffff;
+
+  --good: #12805c;
+  --warn: #b75d0a;
+  --bad: #c42b3a;
+  --bad-soft: #fdecee;
+
+  --blue-soft: #e5edff;
+  --green-soft: #e1f5ec;
+  --amber-soft: #fff1dc;
+  --violet-soft: #efe8ff;
+  --amber: #e08a00;
+  --violet: #7a4ff0;
+
+  --hero: linear-gradient(135deg, #0b1e5b 0%, #1c3fb8 45%, #2f7df6 75%, #19b5d8 100%);
+  --hero-text: #ffffff;
+  --hero-muted: rgb(255 255 255 / 0.75);
+  --glow-1: rgb(79 141 255 / 0.18);
+  --glow-2: rgb(25 181 216 / 0.14);
+
+  --shadow: 0 1px 2px rgb(15 27 45 / 0.04), 0 8px 24px rgb(15 27 45 / 0.06);
+  --shadow-lg: 0 18px 48px rgb(15 27 45 / 0.12);
+  --radius: 18px;
+}
+
+/* ---------- 2. Dark theme: same names, different values ---------- */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0a0f1a;
+  --surface: #121a29;
+  --surface-2: #1a2436;
+  --text: #e8eef8;
+  --muted: #94a3b8;
+  --border: #243049;
+
+  --accent: #4f8dff;
+  --accent-2: #8bb4ff;
+  --accent-text: #08101f;
+
+  --good: #3ccf91;
+  --warn: #f2a93b;
+  --bad: #ff6b78;
+  --bad-soft: #3a1720;
+
+  --blue-soft: #18284a;
+  --green-soft: #12312a;
+  --amber-soft: #3a2a12;
+  --violet-soft: #2a2050;
+  --amber: #f5b13d;
+  --violet: #a68bff;
+
+  --hero: linear-gradient(135deg, #060b1f 0%, #0f2266 45%, #173f9e 75%, #0e6f8f 100%);
+  --glow-1: rgb(79 141 255 / 0.12);
+  --glow-2: rgb(25 181 216 / 0.08);
+
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 18px 48px rgb(0 0 0 / 0.45);
+}
+
+/* ---------- 3. Base ---------- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background:
+    radial-gradient(900px 500px at 0% 0%, var(--glow-1), transparent 70%),
+    radial-gradient(800px 500px at 100% 30%, var(--glow-2), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+h1 {
+  font-size: clamp(26px, 4vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+h2 {
+  font-size: 16px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- 4. Brand & top bar ---------- */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: #1a1200;
+  background: linear-gradient(135deg, #ffd34d, #ff9f1c);
+  box-shadow: 0 6px 16px rgb(255 159 28 / 0.35);
+}
+.brand-name {
+  font-size: 17px;
+}
+.user-email {
+  font-size: 13px;
+  color: var(--hero-muted);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- 5. Buttons ---------- */
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 12px;
+  padding: 11px 16px;
+  border: 1px solid transparent;
+  transition: background 0.15s, filter 0.15s, transform 0.05s;
+}
+button:active {
+  transform: translateY(1px);
+}
+button[type='submit'] {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--accent-text);
+  font-weight: 600;
+  box-shadow: 0 6px 16px rgb(36 89 232 / 0.25);
+}
+button[type='submit']:hover {
+  filter: brightness(1.06);
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+  padding: 8px 14px;
+}
+.ghost:hover {
+  background: var(--surface-2);
+}
+.ghost.on-hero {
+  color: var(--hero-text);
+  border-color: rgb(255 255 255 / 0.3);
+}
+.ghost.on-hero:hover {
+  background: rgb(255 255 255 / 0.12);
+}
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border);
+}
+.icon-button:hover {
+  background: var(--surface-2);
+}
+.hero .icon-button {
+  color: var(--hero-text);
+  background: rgb(255 255 255 / 0.12);
+  border-color: rgb(255 255 255 / 0.25);
+}
+.hero .icon-button:hover {
+  background: rgb(255 255 255 / 0.2);
+}
+.danger {
+  background: transparent;
+  color: var(--bad);
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+.danger:hover {
+  background: var(--bad-soft);
+}
+
+/* ---------- 6. Cards ---------- */
+.card,
+form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.card-head p {
+  font-size: 13px;
+  margin-top: 2px;
+}
+.pill {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: var(--blue-soft);
+}
+.chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* ---------- 7. Hero (dashboard header) ---------- */
+.hero {
+  background: var(--hero);
+  color: var(--hero-text);
+  padding-bottom: 88px;
+  position: relative;
+  overflow: clip;
+}
+/* soft light shapes behind the hero text */
+.hero::before,
+.hero::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hero::before {
+  width: 520px;
+  height: 520px;
+  right: -140px;
+  top: -220px;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.18), transparent 65%);
+}
+.hero::after {
+  width: 380px;
+  height: 380px;
+  left: -120px;
+  bottom: -220px;
+  background: radial-gradient(circle, rgb(255 211 77 / 0.22), transparent 65%);
+}
+.hero .container {
+  position: relative;
+  z-index: 1;
+}
+.hero-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+}
+.hero-kicker {
+  color: var(--hero-muted);
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.meter-chip {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 7px 12px 7px 7px;
+  font-size: 14px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.12);
+  border: 1px solid rgb(255 255 255 / 0.22);
+}
+.meter-disco {
+  font-weight: 700;
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: #1a1200;
+  background: #ffd34d;
+}
+.meter-number {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+.hero-balance {
+  display: grid;
+  gap: 2px;
+  text-align: right;
+  color: var(--hero-muted);
+  font-size: 13px;
+}
+.hero-balance strong {
+  color: var(--hero-text);
+  font-size: clamp(36px, 6vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.hero-balance small {
+  font-size: 16px;
+  letter-spacing: 0;
+  font-weight: 500;
+  color: var(--hero-muted);
+}
+
+/* ---------- 8. Dashboard layout ---------- */
+.dashboard {
+  margin-top: -64px;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.stat {
+  display: grid;
+  gap: 2px;
+  box-shadow: var(--shadow-lg);
+}
+.stat-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+.stat-icon.blue {
+  color: var(--accent);
+  background: var(--blue-soft);
+}
+.stat-icon.green {
+  color: var(--good);
+  background: var(--green-soft);
+}
+.stat-icon.amber {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+.stat-icon.violet {
+  color: var(--violet);
+  background: var(--violet-soft);
+}
+.stat-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+.stat strong {
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.stat small {
+  font-size: 13px;
+  color: var(--muted);
+}
+.stat.good strong {
+  color: var(--good);
+}
+.stat.warn strong {
+  color: var(--warn);
+}
+.stat.bad strong {
+  color: var(--bad);
+}
+.stat.bad {
+  border-color: var(--bad);
+}
+
+.layout {
+  display: grid;
+  gap: 18px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+  .side-col {
+    position: sticky;
+    top: 16px;
+  }
+}
+.main-col,
+.side-col {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+.history {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+.loading-line {
+  margin-bottom: 12px;
+}
+
+/* ---------- 9. Chart & empty states ---------- */
+.chart {
+  padding-bottom: 12px;
+}
+.empty {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 36px 12px;
+  border: 1.5px dashed var(--border);
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+.empty p {
+  max-width: 360px;
+  font-size: 14px;
+}
+.empty-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  color: var(--accent);
+  background: var(--blue-soft);
+  margin-bottom: 4px;
+}
+.empty-line {
+  font-size: 14px;
+  padding: 10px 0 2px;
+}
+
+/* ---------- 10. Lists ---------- */
+ul,
+ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.rows li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.rows li:last-child {
+  border-bottom: none;
+}
+.rows.scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  margin-right: -8px;
+  padding-right: 8px;
+}
+.row-main {
+  display: grid;
+}
+.row-main .muted {
+  font-size: 13px;
+}
+.warn-text {
+  color: var(--warn);
+}
+
+/* ---------- 11. Forms ---------- */
+form {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+.form-head p {
+  font-size: 13px;
+  margin-top: 2px;
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.hint {
+  font-size: 12px;
+  color: var(--accent);
+  background: var(--blue-soft);
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-top: -4px;
+}
+.optional {
+  font-weight: 400;
+  opacity: 0.8;
+}
+input,
+select {
+  font: inherit;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 11px 12px;
+  width: 100%;
+  min-width: 0;
+}
+input:focus,
+select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  background: var(--surface);
+}
+input::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+/* forms inside a card don't need their own card look */
+.plain-form {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+/* ---------- 12. Tips ---------- */
+.tips {
+  background:
+    linear-gradient(160deg, var(--amber-soft), transparent 55%),
+    var(--surface);
+}
+.tips-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+.tips ol {
+  counter-reset: tip;
+  display: grid;
+  gap: 14px;
+}
+.tips li {
+  counter-increment: tip;
+  position: relative;
+  padding-left: 34px;
+  font-size: 14px;
+}
+.tips li::before {
+  content: counter(tip);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+.tips li p {
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* ---------- 13. Landing / sign-in ---------- */
+.landing {
+  position: relative;
+  overflow: clip; /* clip, not hidden: hidden boxes can still get scrolled sideways */
+  background:
+    radial-gradient(700px 420px at 85% 10%, var(--glow-1), transparent 70%),
+    radial-gradient(600px 400px at 10% 90%, rgb(255 211 77 / 0.12), transparent 70%);
+}
+/* everything on the landing page sits above the background art */
+.landing > :not(.landing-art) {
+  position: relative;
+  z-index: 1;
+}
+/* Big gauge behind the page. The image file holds two gauges on white;
+   the size/position show only the coloured top one, and the blend mode
+   makes the white disappear. */
+.landing-art {
+  position: absolute;
+  z-index: 0;
+  right: -12%;
+  bottom: -4%;
+  width: min(1100px, 120vw);
+  aspect-ratio: 740 / 300;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: center 17%;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+/* dark mode: invert so white becomes black, then "screen" hides the black */
+:root[data-theme='dark'] .landing-art {
+  filter: invert(1) hue-rotate(180deg);
+  mix-blend-mode: screen;
+  opacity: 0.16;
+}
+@media (max-width: 899px) {
+  .landing-art {
+    right: -30%;
+    bottom: 0;
+    opacity: 0.16;
+  }
+}
+.landing-grid {
+  flex: 1;
+  display: grid;
+  gap: 36px;
+  align-items: center;
+  padding-top: 24px;
+  padding-bottom: 48px;
+}
+@media (min-width: 900px) {
+  .landing-grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 420px);
+    gap: 64px;
+  }
+}
+.eyebrow {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--blue-soft);
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 18px;
+}
+.landing-copy h1 {
+  font-size: clamp(34px, 5.5vw, 54px);
+  letter-spacing: -0.04em;
+  background: linear-gradient(120deg, var(--text) 30%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.lead {
+  margin-top: 16px;
+  font-size: 18px;
+  color: var(--muted);
+  max-width: 520px;
+}
+.features {
+  display: grid;
+  gap: 18px;
+  margin-top: 30px;
+}
+.features li {
+  display: flex;
+  gap: 14px;
+}
+.features p {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.feature-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: var(--accent);
+  background: var(--blue-soft);
+}
+.disco-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 30px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.auth-card {
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+  border-top: 4px solid var(--accent);
+}
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  margin-bottom: 20px;
+}
+.tabs button {
+  padding: 9px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+}
+.tabs button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.fine-print {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.fine-print svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--good);
+}
+.sent,
+.onboarding {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+}
+.sent-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  color: var(--accent);
+  background: var(--blue-soft);
+  margin-bottom: 4px;
+}
+.narrow {
+  flex: 1;
+  max-width: 480px;
+  padding-top: 24px;
+  padding-bottom: 48px;
+}
+.onboarding {
+  box-shadow: var(--shadow-lg);
+  padding: 28px;
+  border-top: 4px solid var(--accent);
+}
+.onboarding .plain-form {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* ---------- 14. Messages, splash, footer ---------- */
+.error {
+  background: var(--bad-soft);
+  color: var(--bad);
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+form .error {
+  margin-bottom: 0;
+}
+.splash {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+}
+.spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.footer {
+  max-width: 1120px;
+  width: 100%;
+  margin: 40px auto 0;
+  padding: 24px 16px 32px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  display: grid;
+  gap: 4px;
+}
+
+/* ---------- 15. Small screens ---------- */
+@media (max-width: 600px) {
+  .user-email {
+    display: none;
+  }
+  .hero-balance {
+    text-align: left;
+  }
+  .card,
+  form {
+    padding: 16px;
+  }
+  .plain-form {
+    padding: 0;
+  }
+  .stats {
+    gap: 10px;
+  }
+  .stat strong {
+    font-size: 24px;
+  }
+  .stat-icon {
+    margin-bottom: 6px;
+  }
+}
