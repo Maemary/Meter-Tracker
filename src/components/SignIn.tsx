@@ -52,6 +52,7 @@ export function SignIn() {
   const [mode, setMode] = useState<Mode>('signup')
   const [email, setEmail] = useState('')
   const [meterNumber, setMeterNumber] = useState('')
+  const [showMeter, setShowMeter] = useState(false)
   const [disco, setDisco] = useState<DiscoCode | ''>('')
   const [busy, setBusy] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -159,13 +160,17 @@ export function SignIn() {
             </button>
           </div>
 
-          <form className="plain-form" onSubmit={handleSubmit}>
+          <form className="plain-form" method="post" onSubmit={handleSubmit}>
+            {/* Browsers offer to save a login when they see a "username"
+                field next to a type="password" field, so the meter number
+                is a password field (with a show/hide button). */}
             <label>
               Email
               <input
                 type="email"
+                name="username"
                 required
-                autoComplete="email"
+                autoComplete="username"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -174,14 +179,26 @@ export function SignIn() {
 
             <label>
               Meter number
-              <input
-                inputMode="numeric"
-                required
-                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-                placeholder="e.g. 0101 2345 678"
-                value={meterNumber}
-                onChange={(e) => setMeterNumber(e.target.value)}
-              />
+              <span className="password-field">
+                <input
+                  type={showMeter ? 'text' : 'password'}
+                  name="password"
+                  inputMode="numeric"
+                  required
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                  placeholder="e.g. 0101 2345 678"
+                  value={meterNumber}
+                  onChange={(e) => setMeterNumber(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="reveal"
+                  onClick={() => setShowMeter((shown) => !shown)}
+                  aria-label={showMeter ? 'Hide meter number' : 'Show meter number'}
+                >
+                  {showMeter ? 'Hide' : 'Show'}
+                </button>
+              </span>
             </label>
 
             {mode === 'signup' && (

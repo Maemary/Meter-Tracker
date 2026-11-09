@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Brand, Footer } from './components/Brand'
+import { Modal } from './components/Modal'
 import {
   CalendarIcon,
   GaugeIcon,
@@ -11,7 +13,14 @@ import { ThemeToggle } from './components/ThemeToggle'
 import { Tips } from './components/Tips'
 import { UsageChart } from './components/UsageChart'
 import { discoName, formatMeterNumber } from './discos'
-import { formatDay, formatNaira, formatWhen, greeting, nowLocal } from './format'
+import {
+  formatDay,
+  formatNaira,
+  formatUnits,
+  formatWhen,
+  greeting,
+  nowLocal,
+} from './format'
 import { supabase } from './supabase'
 import type { Meter } from './types'
 import { calculateUsage, summarize } from './usage'
@@ -44,6 +53,10 @@ function App({ meter, email }: Props) {
     deleteRecharge,
   } = useMeterData()
 
+  // Which pop-up form is open, if any
+  const [openForm, setOpenForm] = useState<'reading' | 'recharge' | null>(null)
+  const closeForm = () => setOpenForm(null)
+
   const newestFirst = [...readings].sort((a, b) =>
     b.takenAt.localeCompare(a.takenAt),
   )
@@ -52,8 +65,17 @@ function App({ meter, email }: Props) {
   )
   const latest = newestFirst[0]
 
+  // Units loaded AFTER the last reading haven't been "seen" on the meter yet,
+  // so add them on top: last reading 36 + recharge 88.8 → balance 124.8
+  const rechargedSince = latest
+    ? recharges
+        .filter((rc) => rc.takenAt > latest.takenAt)
+        .reduce((total, rc) => total + rc.units, 0)
+    : 0
+  const balance = latest ? latest.units + rechargedSince : undefined
+
   const periods = calculateUsage(readings, recharges)
-  const summary = summarize(periods, latest?.units)
+  const summary = summarize(periods, balance)
 
   const totalPaid = recharges.reduce((total, rc) => total + rc.amount, 0)
   const totalUnitsBought = recharges.reduce((total, rc) => total + rc.units, 0)
@@ -114,15 +136,31 @@ function App({ meter, email }: Props) {
                   {formatMeterNumber(meter.meterNumber)}
                 </span>
               </div>
+              <div className="hero-actions">
+                <button className="hero-button primary" onClick={() => setOpenForm('reading')}>
+                  <GaugeIcon width={18} height={18} />
+                  Log reading
+                </button>
+                <button className="hero-button" onClick={() => setOpenForm('recharge')}>
+                  <WalletIcon width={18} height={18} />
+                  Add recharge
+                </button>
+              </div>
             </div>
 
             <div className="hero-balance">
-              <span>Last reading</span>
+              <span>{rechargedSince > 0 ? 'Balance' : 'Last reading'}</span>
               <strong>
-                {latest ? latest.units.toLocaleString() : '—'}
+                {balance !== undefined ? formatUnits(balance) : '—'}
                 <small> units</small>
               </strong>
-              <span>{latest ? formatWhen(latest.takenAt) : 'Log your first reading below'}</span>
+              <span>
+                {!latest
+                  ? 'Log your first reading to see your balance'
+                  : rechargedSince > 0
+                    ? `${formatUnits(latest.units)} at last reading + ${formatUnits(rechargedSince)} recharged`
+                    : formatWhen(latest.takenAt)}
+              </span>
             </div>
           </div>
         </div>
@@ -277,12 +315,17 @@ function App({ meter, email }: Props) {
           </div>
 
           <aside className="side-col">
-            <ReadingForm onAdd={addReading} />
-            <RechargeForm onAdd={addRecharge} pricePerUnit={latestPrice} />
             <Tips />
           </aside>
         </div>
       </main>
+
+      <Modal open={openForm === 'reading'} onClose={closeForm} label="Log a reading">
+        <ReadingForm onAdd={addReading} onDone={closeForm} />
+      </Modal>
+      <Modal open={openForm === 'recharge'} onClose={closeForm} label="Record a recharge">
+        <RechargeForm onAdd={addRecharge} onDone={closeForm} pricePerUnit={latestPrice} />
+      </Modal>
 
       <Footer />
     </div>

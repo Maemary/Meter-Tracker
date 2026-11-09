@@ -54,9 +54,11 @@ export function useMeterData() {
 
     if (error) {
       setError(error.message)
-      return
+      return false
     }
+    setError(null)
     setReadings((prev) => [...prev, toReading(data)])
+    return true // lets the form know it can close
   }
 
   async function deleteReading(id: string) {
@@ -82,9 +84,11 @@ export function useMeterData() {
 
     if (error) {
       setError(error.message)
-      return
+      return false
     }
+    setError(null)
     setRecharges((prev) => [...prev, toRecharge(data)])
+    return true
   }
 
   async function deleteRecharge(id: string) {

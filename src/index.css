@@ -81,9 +81,16 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%; /* stop phones enlarging text on rotate */
+  text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
+  /* last safety net: nothing may push the page wider than the screen */
+  overflow-x: hidden;
   color: var(--text);
   background:
     radial-gradient(900px 500px at 0% 0%, var(--glow-1), transparent 70%),
@@ -161,6 +168,7 @@ h2 {
 }
 .brand-name {
   font-size: 17px;
+  white-space: nowrap;
 }
 .user-email {
   font-size: 13px;
@@ -289,7 +297,7 @@ form {
   color: var(--hero-text);
   padding-bottom: 88px;
   position: relative;
-  overflow: clip;
+  overflow: hidden; /* older phones: the glow shapes must not widen the page */
 }
 /* soft light shapes behind the hero text */
 .hero::before,
@@ -360,6 +368,33 @@ form {
   border-radius: 50%;
   background: currentColor;
   opacity: 0.6;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.hero-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--hero-text);
+  background: rgb(255 255 255 / 0.14);
+  border-color: rgb(255 255 255 / 0.3);
+}
+.hero-button:hover {
+  background: rgb(255 255 255 / 0.22);
+}
+.hero-button.primary {
+  color: #0b1e5b;
+  background: #ffffff;
+  border-color: #ffffff;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.18);
+}
+.hero-button.primary:hover {
+  background: #eef3ff;
 }
 .hero-balance {
   display: grid;
@@ -483,6 +518,7 @@ form {
 /* ---------- 9. Chart & empty states ---------- */
 .chart {
   padding-bottom: 12px;
+  overflow: hidden; /* a left-over chart tooltip can't widen the page */
 }
 .empty {
   display: grid;
@@ -586,7 +622,7 @@ label {
 input,
 select {
   font: inherit;
-  font-size: 15px;
+  font-size: 16px; /* under 16px, iPhones zoom in when you tap the field */
   color: var(--text);
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -662,7 +698,7 @@ input::placeholder {
 /* ---------- 13. Landing / sign-in ---------- */
 .landing {
   position: relative;
-  overflow: clip; /* clip, not hidden: hidden boxes can still get scrolled sideways */
+  overflow: hidden;
   background:
     radial-gradient(700px 420px at 85% 10%, var(--glow-1), transparent 70%),
     radial-gradient(600px 400px at 10% 90%, rgb(255 211 77 / 0.12), transparent 70%);
@@ -678,9 +714,10 @@ input::placeholder {
 .landing-art {
   position: absolute;
   z-index: 0;
-  right: -12%;
-  bottom: -4%;
-  width: min(1100px, 120vw);
+  /* kept fully inside the screen so it can never make the page wider */
+  right: 0;
+  bottom: 0;
+  width: min(1000px, 100%);
   aspect-ratio: 740 / 300;
   background-repeat: no-repeat;
   background-size: 100% auto;
@@ -697,8 +734,6 @@ input::placeholder {
 }
 @media (max-width: 899px) {
   .landing-art {
-    right: -30%;
-    bottom: 0;
     opacity: 0.16;
   }
 }
@@ -845,6 +880,93 @@ input::placeholder {
   margin-top: 8px;
 }
 
+/* ---------- 13b. Show/hide meter number ---------- */
+.password-field {
+  position: relative;
+  display: block;
+}
+.password-field input {
+  padding-right: 64px;
+}
+.reveal {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border-radius: 8px;
+}
+.reveal:hover {
+  background: var(--blue-soft);
+}
+
+/* ---------- 13c. Pop-up forms (blurred background) ---------- */
+.modal {
+  width: min(440px, calc(100% - 32px));
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  overflow: visible;
+}
+.modal[open] {
+  animation: modal-in 0.18s ease-out;
+}
+/* the page behind: dimmed + blurred. ::backdrop can't read our colour
+   variables in every browser, so it uses plain colours. */
+.modal::backdrop {
+  background: rgb(8 14 30 / 0.45);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.modal form {
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+}
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: 10px;
+}
+.modal-close:hover {
+  color: var(--text);
+}
+/* stop the page scrolling behind an open pop-up */
+body:has(.modal[open]) {
+  overflow: hidden;
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+/* phones: slide up from the bottom like an app sheet */
+@media (max-width: 600px) {
+  .modal {
+    width: 100%;
+    max-width: none;
+    margin: auto 0 0;
+  }
+  .modal form {
+    border-radius: 22px 22px 0 0;
+    padding-bottom: 32px;
+  }
+}
+
 /* ---------- 14. Messages, splash, footer ---------- */
 .error {
   background: var(--bad-soft);
@@ -906,6 +1028,23 @@ form .error {
   }
   .stats {
     gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
+  .ghost,
+  .hero-button {
+    white-space: nowrap;
+  }
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .hero-button {
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+  .container {
+    padding: 0 14px;
   }
   .stat strong {
     font-size: 24px;

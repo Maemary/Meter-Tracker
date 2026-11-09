@@ -17,6 +17,11 @@ export function formatDay(takenAt: string | Date) {
   })
 }
 
+// 124.80000001 → "124.8", 1500 → "1,500"
+export function formatUnits(units: number) {
+  return units.toLocaleString('en-NG', { maximumFractionDigits: 2 })
+}
+
 // 20000 → "₦20,000"
 export function formatNaira(amount: number) {
   return `₦${Math.round(amount).toLocaleString('en-NG')}`

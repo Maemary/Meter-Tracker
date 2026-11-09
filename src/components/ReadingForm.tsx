@@ -3,20 +3,27 @@ import { nowLocal } from '../format'
 import type { NewReading } from '../types'
 
 type Props = {
-  onAdd: (reading: NewReading) => void
+  // Resolves true when saved, false if it failed
+  onAdd: (reading: NewReading) => Promise<boolean>
+  onDone: () => void
 }
 
-export function ReadingForm({ onAdd }: Props) {
+export function ReadingForm({ onAdd, onDone }: Props) {
   const [takenAt, setTakenAt] = useState(nowLocal)
   const [units, setUnits] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [failed, setFailed] = useState(false)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!takenAt || units === '') return
 
-    onAdd({ takenAt, units: Number(units) })
-    setUnits('')
-    setTakenAt(nowLocal())
+    setSaving(true)
+    const saved = await onAdd({ takenAt, units: Number(units) })
+    setSaving(false)
+
+    if (saved) onDone()
+    else setFailed(true)
   }
 
   return (
@@ -36,6 +43,7 @@ export function ReadingForm({ onAdd }: Props) {
       <label>
         Units left on the meter
         <input
+          data-autofocus
           type="number"
           step="0.01"
           min="0"
@@ -45,7 +53,10 @@ export function ReadingForm({ onAdd }: Props) {
           onChange={(e) => setUnits(e.target.value)}
         />
       </label>
-      <button type="submit">Save reading</button>
+      <button type="submit" disabled={saving}>
+        {saving ? 'Saving…' : 'Save reading'}
+      </button>
+      {failed && <p className="error">Couldn't save. Check your connection and try again.</p>}
     </form>
   )
 }

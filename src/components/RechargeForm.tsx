@@ -3,18 +3,22 @@ import { formatNaira, nowLocal } from '../format'
 import type { NewRecharge } from '../types'
 
 type Props = {
-  onAdd: (recharge: NewRecharge) => void
+  // Resolves true when saved, false if it failed
+  onAdd: (recharge: NewRecharge) => Promise<boolean>
+  onDone: () => void
   // Price of one unit on the last recharge (₦1,000 ÷ 4.44 units ≈ ₦225).
   // Used to fill in the units for you. Undefined until the first recharge.
   pricePerUnit: number | undefined
 }
 
-export function RechargeForm({ onAdd, pricePerUnit }: Props) {
+export function RechargeForm({ onAdd, onDone, pricePerUnit }: Props) {
   const [takenAt, setTakenAt] = useState(nowLocal)
   const [units, setUnits] = useState('')
   const [amount, setAmount] = useState('')
   // Once you type the units yourself, we stop overwriting them
   const [unitsTypedByHand, setUnitsTypedByHand] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   function handleAmountChange(value: string) {
     setAmount(value)
@@ -29,15 +33,16 @@ export function RechargeForm({ onAdd, pricePerUnit }: Props) {
     setUnitsTypedByHand(value !== '')
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!takenAt || units === '' || amount === '') return
 
-    onAdd({ takenAt, units: Number(units), amount: Number(amount) })
-    setUnits('')
-    setAmount('')
-    setUnitsTypedByHand(false)
-    setTakenAt(nowLocal())
+    setSaving(true)
+    const saved = await onAdd({ takenAt, units: Number(units), amount: Number(amount) })
+    setSaving(false)
+
+    if (saved) onDone()
+    else setFailed(true)
   }
 
   const autoFilled = !unitsTypedByHand && units !== '' && pricePerUnit !== undefined
@@ -60,6 +65,7 @@ export function RechargeForm({ onAdd, pricePerUnit }: Props) {
         <label>
           Amount paid (₦)
           <input
+            data-autofocus
             type="number"
             step="1"
             min="0"
@@ -88,7 +94,10 @@ export function RechargeForm({ onAdd, pricePerUnit }: Props) {
           recharge). Change it if your receipt says otherwise.
         </p>
       )}
-      <button type="submit">Save recharge</button>
+      <button type="submit" disabled={saving}>
+        {saving ? 'Saving…' : 'Save recharge'}
+      </button>
+      {failed && <p className="error">Couldn't save. Check your connection and try again.</p>}
     </form>
   )
 }
