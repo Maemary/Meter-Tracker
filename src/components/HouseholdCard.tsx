@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatInviteCode, formatMeterNumber } from '../discos'
+import { formatInviteCode } from '../discos'
 import { memberName } from '../format'
 import type { Member } from '../types'
 import { UsersIcon } from './icons'
@@ -7,7 +7,6 @@ import { UsersIcon } from './icons'
 type Props = {
   members: Member[]
   inviteCode: string
-  meterNumber: string
   isOwner: boolean
   currentUserId: string
   error: string | null
@@ -20,7 +19,6 @@ type Props = {
 export function HouseholdCard({
   members,
   inviteCode,
-  meterNumber,
   isOwner,
   currentUserId,
   error,
@@ -31,10 +29,14 @@ export function HouseholdCard({
   const [copied, setCopied] = useState(false)
   const code = formatInviteCode(inviteCode)
 
+  // The meter number is deliberately NOT in the message: joining needs the
+  // code AND the meter number, so a message sent to the wrong person by
+  // mistake isn't enough on its own to get in.
   const shareText =
     `Join our meter on Meter Tracker: ${window.location.origin}\n` +
     `Tap "Create account", then "Join with their invite code".\n` +
-    `Invite code: ${code}\nMeter number: ${formatMeterNumber(meterNumber)}`
+    `Invite code: ${code}\n` +
+    `You'll also need our meter number. It's on the meter and on any token receipt.`
 
   async function share() {
     // Phones: open the share sheet (WhatsApp, SMS…). Laptops: copy instead.
@@ -93,7 +95,8 @@ export function HouseholdCard({
           )}
         </div>
         <p className="muted invite-note">
-          They'll need this code and your meter number to join.
+          They'll need this code and your meter number to join. For safety the
+          invite message doesn't include the meter number.
         </p>
       </div>
 

@@ -355,7 +355,6 @@ function App({ meter, userId, email, savedName, onLeave }: Props) {
             <HouseholdCard
               members={household.members}
               inviteCode={household.inviteCode}
-              meterNumber={meter.meterNumber}
               isOwner={meter.isOwner}
               currentUserId={userId}
               error={household.error}
