@@ -4,6 +4,7 @@ export type Reading = {
   takenAt: string // when you checked, e.g. "2026-11-09T08:30"
   units: number   // units left on the meter (kWh)
   createdBy: string | null // which household member logged it
+  savedAt: string // exact moment it was saved; breaks ties between equal takenAt times
 }
 
 // Units you bought
@@ -13,10 +14,11 @@ export type Recharge = {
   units: number   // units added (kWh)
   amount: number  // naira paid
   createdBy: string | null
+  savedAt: string
 }
 
-export type NewReading = Omit<Reading, 'id' | 'createdBy'>
-export type NewRecharge = Omit<Recharge, 'id' | 'createdBy'>
+export type NewReading = Omit<Reading, 'id' | 'createdBy' | 'savedAt'>
+export type NewRecharge = Omit<Recharge, 'id' | 'createdBy' | 'savedAt'>
 
 // Someone who shares the meter
 export type Member = {

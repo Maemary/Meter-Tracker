@@ -12,18 +12,24 @@ export function ReadingForm({ onAdd, onDone }: Props) {
   const [takenAt, setTakenAt] = useState(nowLocal)
   const [units, setUnits] = useState('')
   const [saving, setSaving] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [problem, setProblem] = useState('')
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!takenAt || units === '') return
+    // A future time is almost always an AM/PM slip, and it would put this
+    // reading in the wrong order with your recharges
+    if (takenAt > nowLocal()) {
+      setProblem('That time is in the future. Check the AM/PM part.')
+      return
+    }
 
     setSaving(true)
     const saved = await onAdd({ takenAt, units: Number(units) })
     setSaving(false)
 
     if (saved) onDone()
-    else setFailed(true)
+    else setProblem("Couldn't save. Check your connection and try again.")
   }
 
   return (
@@ -36,6 +42,7 @@ export function ReadingForm({ onAdd, onDone }: Props) {
         When did you check?
         <input
           type="datetime-local"
+          max={nowLocal()}
           value={takenAt}
           onChange={(e) => setTakenAt(e.target.value)}
         />
@@ -56,7 +63,7 @@ export function ReadingForm({ onAdd, onDone }: Props) {
       <button type="submit" disabled={saving}>
         {saving ? 'Saving…' : 'Save reading'}
       </button>
-      {failed && <p className="error">Couldn't save. Check your connection and try again.</p>}
+      {problem && <p className="error">{problem}</p>}
     </form>
   )
 }

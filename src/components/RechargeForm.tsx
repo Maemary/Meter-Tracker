@@ -18,7 +18,7 @@ export function RechargeForm({ onAdd, onDone, pricePerUnit }: Props) {
   // Once you type the units yourself, we stop overwriting them
   const [unitsTypedByHand, setUnitsTypedByHand] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [problem, setProblem] = useState('')
 
   function handleAmountChange(value: string) {
     setAmount(value)
@@ -36,13 +36,17 @@ export function RechargeForm({ onAdd, onDone, pricePerUnit }: Props) {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!takenAt || units === '' || amount === '') return
+    if (takenAt > nowLocal()) {
+      setProblem('That time is in the future. Check the AM/PM part.')
+      return
+    }
 
     setSaving(true)
     const saved = await onAdd({ takenAt, units: Number(units), amount: Number(amount) })
     setSaving(false)
 
     if (saved) onDone()
-    else setFailed(true)
+    else setProblem("Couldn't save. Check your connection and try again.")
   }
 
   const autoFilled = !unitsTypedByHand && units !== '' && pricePerUnit !== undefined
@@ -57,6 +61,7 @@ export function RechargeForm({ onAdd, onDone, pricePerUnit }: Props) {
         When did you load the token?
         <input
           type="datetime-local"
+          max={nowLocal()}
           value={takenAt}
           onChange={(e) => setTakenAt(e.target.value)}
         />
@@ -97,7 +102,7 @@ export function RechargeForm({ onAdd, onDone, pricePerUnit }: Props) {
       <button type="submit" disabled={saving}>
         {saving ? 'Saving…' : 'Save recharge'}
       </button>
-      {failed && <p className="error">Couldn't save. Check your connection and try again.</p>}
+      {problem && <p className="error">{problem}</p>}
     </form>
   )
 }

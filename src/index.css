@@ -598,6 +598,14 @@ ol {
 .warn-text {
   color: var(--warn);
 }
+.working {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.per-day {
+  white-space: nowrap;
+}
 
 /* ---------- 11. Forms ---------- */
 form {
@@ -1033,7 +1041,13 @@ input::placeholder {
   border: none;
   background: transparent;
   color: var(--text);
-  overflow: visible;
+  /* never taller than the visible screen: if it doesn't fit (e.g. the
+     keyboard is up), the FORM scrolls, not the page behind it.
+     dvh = the screen height that's actually visible right now */
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .modal[open] {
   animation: modal-in 0.18s ease-out;
@@ -1076,16 +1090,25 @@ body:has(.modal[open]) {
     transform: translateY(12px) scale(0.98);
   }
 }
-/* phones: slide up from the bottom like an app sheet */
+/* phones: sit near the TOP of the screen. The keyboard comes up from the
+   bottom, so a form pinned to the bottom ends up hidden behind it. */
 @media (max-width: 600px) {
   .modal {
-    width: 100%;
+    width: calc(100% - 20px);
     max-width: none;
-    margin: auto 0 0;
+    margin: 10px auto auto;
   }
   .modal form {
-    border-radius: 22px 22px 0 0;
-    padding-bottom: 32px;
+    padding: 20px;
+  }
+  .modal[open] {
+    animation-name: modal-down;
+  }
+}
+@keyframes modal-down {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
   }
 }
 

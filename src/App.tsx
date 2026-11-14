@@ -27,7 +27,7 @@ import {
 } from './format'
 import { supabase } from './supabase'
 import type { Meter } from './types'
-import { calculateUsage, summarize } from './usage'
+import { calculateUsage, compareEntries, currentBalance, summarize } from './usage'
 import { useHousehold } from './useHousehold'
 import { useMeterData } from './useMeterData'
 
@@ -78,22 +78,12 @@ function App({ meter, userId, email, savedName, onLeave }: Props) {
   const [openForm, setOpenForm] = useState<'reading' | 'recharge' | 'name' | null>(null)
   const closeForm = () => setOpenForm(null)
 
-  const newestFirst = [...readings].sort((a, b) =>
-    b.takenAt.localeCompare(a.takenAt),
-  )
-  const rechargesNewestFirst = [...recharges].sort((a, b) =>
-    b.takenAt.localeCompare(a.takenAt),
-  )
-  const latest = newestFirst[0]
+  // Newest first; equal times fall back to save order (see compareEntries)
+  const newestFirst = [...readings].sort((a, b) => compareEntries(b, a))
+  const rechargesNewestFirst = [...recharges].sort((a, b) => compareEntries(b, a))
 
-  // Units loaded AFTER the last reading haven't been "seen" on the meter yet,
-  // so add them on top: last reading 36 + recharge 88.8 → balance 124.8
-  const rechargedSince = latest
-    ? recharges
-        .filter((rc) => rc.takenAt > latest.takenAt)
-        .reduce((total, rc) => total + rc.units, 0)
-    : 0
-  const balance = latest ? latest.units + rechargedSince : undefined
+  // Balance = last reading + anything recharged after it
+  const { latest, rechargedSince, balance } = currentBalance(readings, recharges)
 
   const periods = calculateUsage(readings, recharges)
   const summary = summarize(periods, balance)
@@ -267,7 +257,10 @@ function App({ meter, userId, email, savedName, onLeave }: Props) {
               <div className="card-head">
                 <div>
                   <h2>Usage between readings</h2>
-                  <p className="muted">Newest first. ⚠ means an entry looks off.</p>
+                  <p className="muted">
+                    Newest first, with the working: start + recharged − end = used,
+                    ÷ days. ⚠ means an entry looks off.
+                  </p>
                 </div>
               </div>
               {periods.length === 0 ? (
@@ -277,14 +270,22 @@ function App({ meter, userId, email, savedName, onLeave }: Props) {
               ) : (
                 <ul className="rows">
                   {[...periods].reverse().map((p) => (
-                    <li key={p.to}>
-                      <span className="muted">
-                        {formatWhen(p.from)} → {formatWhen(p.to)}
+                    <li key={p.from + p.to}>
+                      <span className="row-main">
+                        <span className="muted">
+                          {formatWhen(p.from)} → {formatWhen(p.to)}
+                        </span>
+                        <span className="working">
+                          {formatUnits(p.startUnits)}
+                          {p.recharged > 0 && ` + ${formatUnits(p.recharged)} recharged`}
+                          {` − ${formatUnits(p.endUnits)} = ${formatUnits(p.unitsUsed)} used`}
+                          {` ÷ ${formatUnits(p.days)} day${p.days === 1 ? '' : 's'}`}
+                        </span>
                       </span>
                       {p.unitsUsed < 0 ? (
                         <strong className="warn-text">⚠ Check entries</strong>
                       ) : (
-                        <strong>{p.perDay.toFixed(1)} units/day</strong>
+                        <strong className="per-day">{p.perDay.toFixed(1)} units/day</strong>
                       )}
                     </li>
                   ))}
